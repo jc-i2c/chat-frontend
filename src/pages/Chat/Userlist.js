@@ -1,14 +1,12 @@
-import axios from "axios";
-
 import React, { useEffect, useState } from "react";
 
-import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
 import { useNavigate } from "react-router-dom";
+
+import io from "socket.io-client";
+const socket = io.connect(process.env.REACT_APP_APIURL);
 
 const Userlist = () => {
   const navigate = useNavigate();
-
   const [userList, setUserList] = useState([]);
 
   var userData = localStorage.getItem("user_data");
@@ -18,23 +16,19 @@ const Userlist = () => {
     if (!userData) {
       navigate("/chat");
       return;
+    } else {
+      socket.emit("userListEmit");
     }
-
-    axios
-      .get(`${process.env.REACT_APP_APIURL}/users/allusers`)
-      .then((data) => {
-        if (data.data.success) {
-          setUserList(() => {
-            return data.data.data.filter((item) => item._id !== userData._id);
-          });
-        } else {
-          toast.error(data.data.message);
-        }
-      })
-      .catch((err) => {
-        console.log(err.response);
-      });
   }, []);
+
+  // SOCKET effect
+  useEffect(() => {
+    socket.on("userListOn", function (listAllUsers) {
+      setUserList(() => {
+        return listAllUsers.filter((item) => item._id !== userData._id);
+      });
+    });
+  }, [socket]);
 
   const gotoChatRoom = (chatUser) => {
     navigate("/roomchat", {
@@ -102,14 +96,12 @@ const Userlist = () => {
                                 }}
                                 onClick={() => gotoChatRoom(list)}
                               />
-
                               <hr />
                             </div>
                           ))}
                       </div>
                     </div>
                   </div>
-                  <ToastContainer />
                 </div>
               </div>
             </div>

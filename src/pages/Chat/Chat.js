@@ -8,11 +8,17 @@ import { useNavigate } from "react-router-dom";
 const Chat = () => {
   const navigate = useNavigate();
 
+  var userData = localStorage.getItem("user_data");
+  userData = JSON.parse(userData);
+
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [error, setError] = useState({});
 
   useEffect(() => {
+    if (userData) {
+      navigate("/userlist");
+    }
     setError({});
   }, [name]);
 

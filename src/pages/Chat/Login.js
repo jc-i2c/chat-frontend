@@ -10,10 +10,16 @@ import { useNavigate } from "react-router-dom";
 const Login = () => {
   const navigate = useNavigate();
 
+  var userData = localStorage.getItem("user_data");
+  userData = JSON.parse(userData);
+
   const [userCode, setUserCode] = useState("");
   const [error, setError] = useState({});
 
   useEffect(() => {
+    if (userData) {
+      navigate("/userlist");
+    }
     setError({});
   }, [userCode]);
 

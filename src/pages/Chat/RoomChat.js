@@ -17,18 +17,19 @@ const RoomChat = () => {
   const [loginUser, setLoginUser] = useState("");
   const [messageList, setMessageList] = useState([]);
 
-  useEffect(() => {
-    let propsObj = new Object();
-    propsObj = location.state.data;
+  var getUserData = localStorage.getItem("user_data");
+  getUserData = JSON.parse(getUserData);
 
-    if (Object.keys(propsObj).length > 0) {
+  useEffect(() => {
+    if (!location.state) {
+      navigate("/userlist");
+    } else {
+      let propsObj = new Object();
+      propsObj = location.state.data;
+
       setChatUser(propsObj);
 
-      var getUserData = localStorage.getItem("user_data");
-      getUserData = JSON.parse(getUserData);
       setLoginUser(getUserData);
-    } else {
-      navigate("/chat");
     }
   }, []);
 
