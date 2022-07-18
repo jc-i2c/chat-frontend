@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import ScrollToBottom from "react-scroll-to-bottom";
 
 import io from "socket.io-client";
@@ -11,10 +11,14 @@ const RoomChat = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
+  const inputRef = useRef(null);
+
   const [roomId, setRoomId] = useState("");
   const [message, setMessage] = useState("");
   const [chatUser, setChatUser] = useState("");
   const [loginUser, setLoginUser] = useState("");
+  const [imageUrl, setImageUrl] = useState("");
+  const [uploadImageBuffer, setUploadImageBuffer] = useState("");
   const [messageList, setMessageList] = useState([]);
 
   var getUserData = localStorage.getItem("user_data");
@@ -28,7 +32,6 @@ const RoomChat = () => {
       propsObj = location.state.data;
 
       setChatUser(propsObj);
-
       setLoginUser(getUserData);
     }
   }, []);
@@ -76,25 +79,46 @@ const RoomChat = () => {
       chat_room_id: roomId,
       senderid: loginUser._id,
       receiverid: chatUser._id,
-      message: message,
+      message: message && message,
     };
 
+    if (imageUrl) {
+      const reader = new FileReader();
+      reader.readAsDataURL(uploadImageBuffer);
+
+      reader.onloadend = function () {
+        sendData = { ...sendData, imageData: reader.result };
+        socket.emit("sendMessageEmit", sendData);
+      };
+
+      setMessage("");
+      setImageUrl("");
+      return;
+    }
+
+    // console.log(sendData, "sending data");
     socket.emit("sendMessageEmit", sendData);
     setMessage("");
+    setImageUrl("");
   };
 
-  const fileOpen = () => {
-    return (
-      <input
-        type="file"
-        id="file"
-        style="display: none"
-        name="image"
-        accept="image/gif,image/jpeg,image/jpg,image/png"
-        multiple=""
-        data-original-title="upload photos"
-      />
-    );
+  const handleClick = () => {
+    inputRef.current.click();
+  };
+
+  const fileHandle = (e) => {
+    const uploadImages = e.target.files[0];
+
+    setImageUrl(URL.createObjectURL(uploadImages));
+
+    setUploadImageBuffer(uploadImages);
+  };
+
+  const logOut = () => {
+    socket.emit("changeStatusEmit", getUserData._id);
+
+    localStorage.removeItem("user_data");
+    navigate("/chat");
   };
 
   return (
@@ -116,16 +140,29 @@ const RoomChat = () => {
                   />
                   <div>
                     {`${chatUser?.name}`}
-                    <img
-                      className="w-1/6 border-none rounded-lg"
-                      src={"/chat/assets/img/green.png"}
-                      alt="..."
-                      style={{
-                        height: "10px",
-                        width: "10px",
-                        borderRadius: "50%",
-                      }}
-                    />
+                    {chatUser.islogin ? (
+                      <img
+                        className="w-1/6 border-none rounded-lg"
+                        src={"/chat/assets/img/green.png"}
+                        alt="..."
+                        style={{
+                          height: "10px",
+                          width: "10px",
+                          borderRadius: "50%",
+                        }}
+                      />
+                    ) : (
+                      <img
+                        className="w-1/6 border-none rounded-lg"
+                        src={"/chat/assets/img/red.png"}
+                        alt={"Couldn't find image!"}
+                        style={{
+                          height: "10px",
+                          width: "10px",
+                          borderRadius: "50%",
+                        }}
+                      />
+                    )}
                   </div>
                 </div>
               </span>
@@ -138,8 +175,7 @@ const RoomChat = () => {
                     width: "35px",
                   }}
                   onClick={() => {
-                    localStorage.removeItem("user_data");
-                    navigate("/chat");
+                    logOut();
                   }}
                 />
               </span>
@@ -196,26 +232,53 @@ const RoomChat = () => {
           <form className="my-2 mt-4 px-4 lg:px-6" onSubmit={sendMessage}>
             <div className="flex space-x-3">
               <div className="relative w-10/12 mb-3 d-flex justify-content-between align-items-center">
-                <input
-                  type="text"
-                  value={message}
-                  required
-                  onChange={(e) => setMessage(e.target.value)}
-                  className="px-3 py-3 placeholder-blueGray-300 text-blueGray-600 bg-white rounded text-sm shadow-md outline-none focus:outline-none  w-full ease-linear transition-all duration-150"
-                  placeholder="Tpye message here ..."
-                />
+                {imageUrl ? (
+                  <img
+                    src={imageUrl && imageUrl}
+                    alt={"Couldn't find images!"}
+                    style={{
+                      height: "100px",
+                      width: "100px",
+                    }}
+                  />
+                ) : (
+                  <input
+                    type="text"
+                    value={message}
+                    required
+                    onChange={(e) => setMessage(e.target.value)}
+                    className="px-3 py-3 placeholder-blueGray-300 text-blueGray-600 bg-white rounded text-sm shadow-md outline-none focus:outline-none  w-full ease-linear transition-all duration-150"
+                    placeholder="Tpye message here ..."
+                  />
+                )}
                 <img
                   src="/chat/assets/img/image.png"
                   alt={"Couldn't find images!"}
                   style={{
-                    height: "35px",
-                    width: "35px",
+                    height: "40px",
+                    width: "40px",
                   }}
                   onClick={() => {
-                    fileOpen();
+                    handleClick();
                   }}
                 />
               </div>
+
+              <div>
+                <input
+                  type="file"
+                  id="file"
+                  style={{ display: "none" }}
+                  name="image"
+                  accept="image/gif,image/jpeg,image/jpg,image/png"
+                  ref={inputRef}
+                  data-original-title="upload photos"
+                  onChange={(e) => {
+                    fileHandle(e);
+                  }}
+                />
+              </div>
+
               <div className="text-center w-2/12">
                 <button
                   className="text-white  text-sm font-bold uppercase px-6 py-3 rounded shadow hover:shadow-lg outline-none focus:outline-none mr-1 mb-1 w-full ease-linear transition-all duration-150"

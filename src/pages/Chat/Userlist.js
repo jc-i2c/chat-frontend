@@ -28,6 +28,18 @@ const Userlist = () => {
         return listAllUsers.filter((item) => item._id !== userData._id);
       });
     });
+
+    socket.on("updateUserEmit", function (userId) {
+      setUserList(
+        userList.map((user) => {
+          if (user._id == userId) {
+            return { ...user, islogin: !user.islogin };
+          } else {
+            return user;
+          }
+        })
+      );
+    });
   }, [socket]);
 
   const gotoChatRoom = (chatUser) => {
@@ -87,6 +99,29 @@ const Userlist = () => {
                                   {list?.email_address}
                                 </h4>
                               </div>
+                              {list.islogin ? (
+                                <img
+                                  className="w-1/6 border-none rounded-lg"
+                                  src={"/chat/assets/img/green.png"}
+                                  alt={"Couldn't find image!"}
+                                  style={{
+                                    height: "10px",
+                                    width: "10px",
+                                    borderRadius: "50%",
+                                  }}
+                                />
+                              ) : (
+                                <img
+                                  className="w-1/6 border-none rounded-lg"
+                                  src={"/chat/assets/img/red.png"}
+                                  alt={"Couldn't find image!"}
+                                  style={{
+                                    height: "10px",
+                                    width: "10px",
+                                    borderRadius: "50%",
+                                  }}
+                                />
+                              )}
                               <img
                                 src="/chat/assets/img/comment_2.svg"
                                 alt={"Couldn't find profile!"}

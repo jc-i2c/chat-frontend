@@ -7,6 +7,9 @@ import "react-toastify/dist/ReactToastify.css";
 
 import { useNavigate } from "react-router-dom";
 
+import io from "socket.io-client";
+const socket = io.connect(process.env.REACT_APP_APIURL);
+
 const Login = () => {
   const navigate = useNavigate();
 
@@ -39,6 +42,8 @@ const Login = () => {
           if (data.data.success) {
             localStorage.setItem("user_data", JSON.stringify(data.data.data));
             toast.success(data.data.message);
+
+            socket.emit("changeStatusEmit", data.data.data._id);
             navigate("/userlist");
           } else {
             toast.error(data.data.message);
