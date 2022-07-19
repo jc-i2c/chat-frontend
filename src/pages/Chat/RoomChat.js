@@ -1,9 +1,8 @@
 import React, { useEffect, useState, useRef } from "react";
 import ScrollToBottom from "react-scroll-to-bottom";
 
-import io from "socket.io-client";
-
 import { useNavigate, useLocation } from "react-router-dom";
+import io from "socket.io-client";
 
 const socket = io.connect(process.env.REACT_APP_APIURL);
 
@@ -13,6 +12,7 @@ const RoomChat = () => {
 
   const inputRef = useRef(null);
 
+  const [isTrue, setIsTrue] = useState(false);
   const [roomId, setRoomId] = useState("");
   const [message, setMessage] = useState("");
   const [chatUser, setChatUser] = useState("");
@@ -20,6 +20,7 @@ const RoomChat = () => {
   const [imageUrl, setImageUrl] = useState("");
   const [uploadImageBuffer, setUploadImageBuffer] = useState("");
   const [messageList, setMessageList] = useState([]);
+  const [openImage, setOpenImage] = useState("");
 
   var getUserData = localStorage.getItem("user_data");
   getUserData = JSON.parse(getUserData);
@@ -75,31 +76,34 @@ const RoomChat = () => {
   const sendMessage = (e) => {
     e.preventDefault();
 
-    let sendData = {
-      chat_room_id: roomId,
-      senderid: loginUser._id,
-      receiverid: chatUser._id,
-      message: message && message,
-    };
-
-    if (imageUrl) {
-      const reader = new FileReader();
-      reader.readAsDataURL(uploadImageBuffer);
-
-      reader.onloadend = function () {
-        sendData = { ...sendData, imageData: reader.result };
-        socket.emit("sendMessageEmit", sendData);
+    if (message || uploadImageBuffer) {
+      let sendData = {
+        chat_room_id: roomId,
+        senderid: loginUser._id,
+        receiverid: chatUser._id,
       };
 
-      setMessage("");
-      setImageUrl("");
-      return;
-    }
+      if (imageUrl) {
+        const reader = new FileReader();
+        reader.readAsDataURL(uploadImageBuffer);
 
-    // console.log(sendData, "sending data");
-    socket.emit("sendMessageEmit", sendData);
-    setMessage("");
-    setImageUrl("");
+        reader.onloadend = function () {
+          sendData = { ...sendData, file: reader.result };
+          socket.emit("sendMessageEmit", sendData);
+        };
+
+        setMessage("");
+        setImageUrl("");
+        return;
+      } else {
+        sendData = { ...sendData, message: message };
+        socket.emit("sendMessageEmit", sendData);
+
+        setMessage("");
+        setImageUrl("");
+        return;
+      }
+    }
   };
 
   const handleClick = () => {
@@ -108,9 +112,7 @@ const RoomChat = () => {
 
   const fileHandle = (e) => {
     const uploadImages = e.target.files[0];
-
     setImageUrl(URL.createObjectURL(uploadImages));
-
     setUploadImageBuffer(uploadImages);
   };
 
@@ -121,6 +123,7 @@ const RoomChat = () => {
     navigate("/chat");
   };
 
+  console.log(isTrue, "isTrue");
   return (
     <>
       <div className="w-full lg:w-8/12 h-10/12 px-4">
@@ -185,8 +188,8 @@ const RoomChat = () => {
           <div className="max-h-80 px-6 ">
             <div className="border-black-300 border-2">
               <ScrollToBottom className="h-80">
-                {messageList.map((messageData, index) => {
-                  if (messageData.senderid._id === loginUser._id) {
+                {messageList.map((items, index) => {
+                  if (items.senderid._id === loginUser._id) {
                     return (
                       <div
                         className="flex justify-end px-4 lg:px-10 py-2 pt-0"
@@ -194,13 +197,33 @@ const RoomChat = () => {
                       >
                         <div className="text-left mt-0.5 shadow-md text-green-700 shadow-green-500 px-3 py-1 w-fit max-w-sm">
                           <div className="font-extrabold pb-1">
-                            {messageData.senderid.name}
+                            {items.senderid.name}
                           </div>
-                          <span className="text-black text-md">
-                            {messageData.message}
-                          </span>
+                          {items.message ? (
+                            <span className="text-black text-md">
+                              {items.message}
+                            </span>
+                          ) : (
+                            <img
+                              data-toggle="modal"
+                              data-target="#openImage"
+                              className="rounded mx-auto d-block"
+                              src={
+                                `${process.env.REACT_APP_PROFILEPIC}` +
+                                items?.filename
+                              }
+                              alt={"Images!"}
+                              style={{
+                                height: "70px",
+                                width: "70px",
+                              }}
+                              onClick={() => {
+                                setOpenImage(items?.filename);
+                              }}
+                            />
+                          )}
                           <div className="text-xs text-right">
-                            {messageData.msgtime}
+                            {items.msgtime}
                           </div>
                         </div>
                       </div>
@@ -213,13 +236,33 @@ const RoomChat = () => {
                       >
                         <div className="text-left mt-2 shadow-md text-orange-700 shadow-orange-500 px-3 py-1 w-fit max-w-sm">
                           <div className="font-extrabold pb-1">
-                            {messageData.senderid.name}
+                            {items.senderid.name}
                           </div>
-                          <span className="text-black text-md">
-                            {messageData.message}
-                          </span>
+                          {items.message ? (
+                            <span className="text-black text-md">
+                              {items.message}
+                            </span>
+                          ) : (
+                            <img
+                              data-toggle="modal"
+                              data-target="#openImage"
+                              className="rounded mx-auto d-block"
+                              src={
+                                `${process.env.REACT_APP_PROFILEPIC}` +
+                                items?.filename
+                              }
+                              alt={"Images!"}
+                              style={{
+                                height: "70px",
+                                width: "70px",
+                              }}
+                              onClick={() => {
+                                setOpenImage(items?.filename);
+                              }}
+                            />
+                          )}
                           <div className="text-xs text-right">
-                            {messageData.msgtime}
+                            {items.msgtime}
                           </div>
                         </div>
                       </div>
@@ -234,6 +277,7 @@ const RoomChat = () => {
               <div className="relative w-10/12 mb-3 d-flex justify-content-between align-items-center">
                 {imageUrl ? (
                   <img
+                    className="rounded mx-auto d-block"
                     src={imageUrl && imageUrl}
                     alt={"Couldn't find images!"}
                     style={{
@@ -252,6 +296,7 @@ const RoomChat = () => {
                   />
                 )}
                 <img
+                  className="rounded mx-auto d-block"
                   src="/chat/assets/img/image.png"
                   alt={"Couldn't find images!"}
                   style={{
@@ -290,6 +335,42 @@ const RoomChat = () => {
               </div>
             </div>
           </form>
+        </div>
+      </div>
+
+      {/* Modal */}
+      <div
+        className="modal"
+        id="openImage"
+        role="dialog"
+        aria-labelledby="exampleModalLabel"
+        aria-hidden="true"
+      >
+        <div className="modal-dialog modal-dialog-centered" role="document">
+          <div className="modal-content">
+            <div className="modal-header">
+              <button
+                type="button"
+                className="close"
+                data-dismiss="modal"
+                aria-label="Close"
+              >
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div className="d-flex justify-content-center">
+              {<img src={`${process.env.REACT_APP_PROFILEPIC}` + openImage} />}
+            </div>
+            <div className="modal-footer">
+              <button
+                type="button"
+                className="btn btn-secondary bg-secondary"
+                data-dismiss="modal"
+              >
+                Close
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </>
