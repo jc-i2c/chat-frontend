@@ -123,7 +123,6 @@ const RoomChat = () => {
     navigate("/chat");
   };
 
-  console.log(isTrue, "isTrue");
   return (
     <>
       <div className="w-full lg:w-8/12 h-10/12 px-4">

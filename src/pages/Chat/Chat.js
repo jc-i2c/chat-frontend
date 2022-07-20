@@ -15,12 +15,30 @@ const Chat = () => {
   const [email, setEmail] = useState("");
   const [error, setError] = useState({});
 
+  const [profileImage, setProfileImage] = useState("");
+  const [imagePath, setImagePath] = useState("");
+  const initialState = { alt: "", src: "" };
+
   useEffect(() => {
     if (userData) {
       navigate("/userlist");
     }
     setError({});
   }, [name]);
+
+  // Handle image.
+  const fileHandle = (e) => {
+    e.preventDefault();
+    var profileImage = e.target.files[0];
+    setProfileImage(profileImage);
+
+    const { files } = e.target;
+    const fileValue = files.length
+      ? URL.createObjectURL(profileImage)
+      : initialState;
+
+    setImagePath(fileValue);
+  };
 
   const submitFormData = (e) => {
     setError({});
@@ -37,21 +55,26 @@ const Chat = () => {
       return;
     }
 
-    const payload = {
-      email_address: email,
-      name: name,
-    };
+    if (!profileImage) {
+      setError({ wrongProfile: true });
+      return;
+    }
+
+    var payload = new FormData();
+    payload.append("email_address", email);
+    payload.append("name", name);
+    payload.append("profile_picture", profileImage);
 
     axios
       .post(`${process.env.REACT_APP_APIURL}/users/adduser`, payload)
       .then((data) => {
         if (data.data.success) {
           toast.success(data.data.message);
-          // navigate("/login");
-        } else {
-          toast.error(data.data.message);
           setName("");
           setEmail("");
+          setImagePath("");
+        } else {
+          toast.error(data.data.message);
         }
       })
       .catch((err) => {
@@ -130,6 +153,35 @@ const Chat = () => {
                             />
                             <p className="my-2 text-sm text-red-700 px-2">
                               {error.wrongEmail && "Provide valid email"}
+                            </p>
+                          </div>
+                          <div className="relative w-full mb-3">
+                            <label
+                              className="block uppercase text-blueGray-600 text-xs font-bold mb-2"
+                              htmlFor="grid-password"
+                            >
+                              Profile Picture
+                            </label>
+                            {imagePath && (
+                              <img
+                                className="rounded mx-auto d-block"
+                                src={imagePath}
+                                alt={"Image not found"}
+                                style={{
+                                  height: "100px",
+                                  width: "100px",
+                                }}
+                              />
+                            )}
+                            <input
+                              type="file"
+                              onChange={(e) => fileHandle(e)}
+                              className="border-0 px-3 py-3 placeholder-blueGray-300 text-blueGray-600 bg-white rounded text-sm shadow focus:outline-none focus:ring w-full ease-linear transition-all duration-150"
+                              placeholder="Enter Email"
+                            />
+                            <p className="my-2 text-sm text-red-700 px-2">
+                              {error.wrongProfile &&
+                                "Please select profile picture"}
                             </p>
                           </div>
 

@@ -63,15 +63,16 @@ const Userlist = () => {
                 backgroundRepeat: "no-repeat",
               }}
             >
-              <div className="container mx-auto px-4 h-full">
+              <div className="container px-4 h-full">
                 <div className="flex content-center items-center justify-center h-full">
                   <div className="w-full lg:w-4/12 px-4">
                     <div className="relative flex flex-col shadow-white min-w-0 break-words w-full mb-6 shadow-lg rounded-lg bg-white border-0">
-                      <div className="rounded-t mb-0 px-6 py-6">
-                        <div className="text-center mb-3">
+                      <div className="rounded-t px-6 py-6">
+                        <div className="text-center">
                           <h2 className="text-blueGray-500 font-bold">
                             User List
                           </h2>
+                          {userData?.name}
                         </div>
                         <hr className="mt-6 border-b-1 border-blueGray-300" />
                       </div>
@@ -83,7 +84,10 @@ const Userlist = () => {
                               key={index}
                             >
                               <img
-                                src="/chat/assets/img/team-4-470x470.png"
+                                src={
+                                  `${process.env.REACT_APP_PROFILEPIC}` +
+                                  list?.profile_picture
+                                }
                                 alt={"Couldn't find profile!"}
                                 style={{
                                   height: "40px",
@@ -95,9 +99,16 @@ const Userlist = () => {
                                 <label className="text-blueGray-500 text-m font-bold">
                                   {list?.name}
                                 </label>
-                                <h4 className="block lowercase text-blueGray-600 text-xs font-bold mb-2">
-                                  {list?.email_address}
-                                </h4>
+
+                                <div className="block lowercase text-blueGray-600 text-xs font-bold mb-2 d-flex align-items-center justify-content-between">
+                                  <div
+                                    className="overflow-hidden"
+                                    style={{ width: "100px", height: "1.4em" }}
+                                  >
+                                    {list?.lastmsg}
+                                  </div>
+                                  <div> {list?.msgtime}</div>
+                                </div>
                               </div>
                               {list.islogin ? (
                                 <img
