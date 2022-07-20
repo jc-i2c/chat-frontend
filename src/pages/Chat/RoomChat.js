@@ -12,7 +12,6 @@ const RoomChat = () => {
 
   const inputRef = useRef(null);
 
-  const [isTrue, setIsTrue] = useState(false);
   const [roomId, setRoomId] = useState("");
   const [message, setMessage] = useState("");
   const [chatUser, setChatUser] = useState("");
@@ -271,9 +270,9 @@ const RoomChat = () => {
               </ScrollToBottom>
             </div>
           </div>
-          <form className="my-2 mt-4 px-4 lg:px-6" onSubmit={sendMessage}>
-            <div className="flex space-x-3">
-              <div className="relative w-10/12 mb-3 d-flex justify-content-between align-items-center">
+          <form className="my-2 mt-2 px-4 lg:px-6" onSubmit={sendMessage}>
+            <div className="flex space-x-3 d-flex justify-content-between align-items-center">
+              <div className="relative w-10/12 mb-0 d-flex justify-content-between align-items-center">
                 {imageUrl ? (
                   <img
                     className="rounded mx-auto d-block"
@@ -290,8 +289,8 @@ const RoomChat = () => {
                     value={message}
                     required
                     onChange={(e) => setMessage(e.target.value)}
-                    className="px-3 py-3 placeholder-blueGray-300 text-blueGray-600 bg-white rounded text-sm shadow-md outline-none focus:outline-none  w-full ease-linear transition-all duration-150"
-                    placeholder="Tpye message here ..."
+                    className="px-2 py-2 placeholder-blueGray-300 text-blueGray-600 bg-white rounded text-m shadow-md outline-none focus:outline-none  w-full ease-linear transition-all duration-150"
+                    placeholder="Tpye message here..."
                   />
                 )}
                 <img
