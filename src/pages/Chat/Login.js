@@ -16,7 +16,7 @@ const Login = () => {
   var userData = localStorage.getItem("user_data");
   userData = JSON.parse(userData);
 
-  const [userCode, setUserCode] = useState("");
+  const [emailAddress, setEmailAddress] = useState("");
   const [error, setError] = useState({});
 
   useEffect(() => {
@@ -24,19 +24,22 @@ const Login = () => {
       navigate("/userlist");
     }
     setError({});
-  }, [userCode]);
+  }, [emailAddress]);
 
   const submitFormData = (e) => {
     e.preventDefault();
     setError({});
 
-    if (!/^[0-9]{1,6}$/.test(userCode) || userCode === null) {
+    if (
+      !/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$/i.test(emailAddress) ||
+      !emailAddress
+    ) {
       setError({ wrongUserCode: true });
       return;
     } else {
       axios
         .post(`${process.env.REACT_APP_APIURL}/users/codeverify`, {
-          user_code: userCode,
+          email_address: emailAddress,
         })
         .then((data) => {
           if (data.data.success) {
@@ -89,23 +92,20 @@ const Login = () => {
                               className="block uppercase text-blueGray-600 text-xs font-bold mb-2"
                               htmlFor="grid-password"
                             >
-                              User Code
+                              User Email Address
                             </label>
                             <input
-                              type="text"
-                              value={userCode}
-                              maxLength={6}
+                              type="email"
+                              value={emailAddress}
                               onChange={(e) => {
-                                var numberReg = /^[0-9]*$/;
-                                if (numberReg.test(e.target.value)) {
-                                  setUserCode(e.target.value);
-                                }
+                                setEmailAddress(e.target.value);
                               }}
                               className="border-0 px-3 py-3 placeholder-blueGray-300 text-blueGray-600 bg-white rounded text-sm shadow focus:outline-none focus:ring w-full ease-linear transition-all duration-150"
-                              placeholder="Enter your user code"
+                              placeholder="Enter your email address"
                             />
                             <p className="my-2 text-sm text-red-700 px-2">
-                              {error.wrongUserCode && "Please enter valid code"}
+                              {error.wrongUserCode &&
+                                "Please enter valid email address"}
                             </p>
                           </div>
 
