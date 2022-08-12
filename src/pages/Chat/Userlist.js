@@ -8,6 +8,7 @@ const socket = io.connect(process.env.REACT_APP_APIURL);
 const Userlist = () => {
   const navigate = useNavigate();
   const [userList, setUserList] = useState([]);
+  const [chatUser, setChatUser] = useState([]);
 
   var userData = localStorage.getItem("user_data");
   userData = JSON.parse(userData);
@@ -21,16 +22,20 @@ const Userlist = () => {
       socket.emit("allUserList");
 
       // Only chat user list get.
-      // socket.emit("userChatList");
+      socket.emit("chatUserEmit", userData?._id);
     }
   }, []);
 
   // SOCKET effect
   useEffect(() => {
-    socket.on("userListOn", function (listAllUsers) {
+    socket.on("allUserList", function (listAllUsers) {
       setUserList(() => {
         return listAllUsers.filter((item) => item._id !== userData._id);
       });
+    });
+
+    socket.on("chatUserOn", function (chatUserData) {
+      setChatUser(chatUserData);
     });
 
     socket.on("updateUserEmit", function (userId) {
@@ -80,74 +85,79 @@ const Userlist = () => {
                         <hr className="mt-4 border-b-1 border-blueGray-300" />
                       </div>
                       <div className="flex-auto px-4 lg:px-10 py-1 pt-0">
-                        {userList &&
-                          userList.map((list, index) => (
-                            <div
-                              className="relative w-full mb-3 d-flex justify-content-between align-items-center"
-                              key={index}
-                            >
-                              <img
-                                src={
-                                  `${process.env.REACT_APP_PROFILEPIC}` +
-                                  list?.profile_picture
-                                }
-                                alt={"Couldn't find profile!"}
-                                style={{
-                                  height: "40px",
-                                  width: "40px",
-                                  borderRadius: "50%",
-                                }}
-                              />
-                              <div>
-                                <label className="text-blueGray-500 text-m font-bold">
-                                  {list?.name}
-                                </label>
+                        {chatUser &&
+                          chatUser.map((list, index) => {
+                            if (list._id != userData._id) {
+                              return (
+                                <div
+                                  className="relative w-full mb-3 d-flex justify-content-between align-items-center"
+                                  key={index}
+                                >
+                                  <img
+                                    src={list?.profile_picture}
+                                    alt={"Profile!"}
+                                    style={{
+                                      height: "40px",
+                                      width: "40px",
+                                      borderRadius: "50%",
+                                    }}
+                                  />
 
-                                <div className="block lowercase text-blueGray-600 text-xs font-bold mb-2 d-flex align-items-center justify-content-between">
-                                  <div
-                                    className="overflow-hidden"
-                                    style={{ width: "100px", height: "1.4em" }}
-                                  >
-                                    {list?.lastmsg}
+                                  <div className="ml-3 w-full">
+                                    <label className="text-blueGray-500 text-m font-bold">
+                                      {list?.name}
+                                    </label>
+                                    <div className="block lowercase text-blueGray-600 text-xs font-bold mb-2 d-flex align-items-center justify-content-between">
+                                      <div
+                                        className="overflow-hidden"
+                                        style={{
+                                          width: "100px",
+                                          height: "1.4em",
+                                        }}
+                                      >
+                                        {list?.lastmsg}
+                                      </div>
+                                      <div> {list?.msgtime}</div>
+                                    </div>
                                   </div>
-                                  <div> {list?.msgtime}</div>
+
+                                  {list.islogin ? (
+                                    <img
+                                      className="w-1/6 border-none rounded-lg"
+                                      src={"/chat/assets/img/green.png"}
+                                      alt={"Couldn't find image!"}
+                                      style={{
+                                        height: "10px",
+                                        width: "10px",
+                                        borderRadius: "50%",
+                                      }}
+                                    />
+                                  ) : (
+                                    <img
+                                      className="w-1/6 border-none rounded-lg"
+                                      src={"/chat/assets/img/red.png"}
+                                      alt={"Couldn't find image!"}
+                                      style={{
+                                        height: "10px",
+                                        width: "10px",
+                                        borderRadius: "50%",
+                                      }}
+                                    />
+                                  )}
+                                  <img
+                                    src="/chat/assets/img/comment_2.svg"
+                                    alt={"Profile!"}
+                                    style={{
+                                      height: "35px",
+                                      width: "35px",
+                                    }}
+                                    onClick={() => gotoChatRoom(list)}
+                                  />
+                                  <hr />
                                 </div>
-                              </div>
-                              {list.islogin ? (
-                                <img
-                                  className="w-1/6 border-none rounded-lg"
-                                  src={"/chat/assets/img/green.png"}
-                                  alt={"Couldn't find image!"}
-                                  style={{
-                                    height: "10px",
-                                    width: "10px",
-                                    borderRadius: "50%",
-                                  }}
-                                />
-                              ) : (
-                                <img
-                                  className="w-1/6 border-none rounded-lg"
-                                  src={"/chat/assets/img/red.png"}
-                                  alt={"Couldn't find image!"}
-                                  style={{
-                                    height: "10px",
-                                    width: "10px",
-                                    borderRadius: "50%",
-                                  }}
-                                />
-                              )}
-                              <img
-                                src="/chat/assets/img/comment_2.svg"
-                                alt={"Couldn't find profile!"}
-                                style={{
-                                  height: "35px",
-                                  width: "35px",
-                                }}
-                                onClick={() => gotoChatRoom(list)}
-                              />
-                              <hr />
-                            </div>
-                          ))}
+                              );
+                            }
+                          })}
                       </div>
                     </div>
                   </div>
@@ -169,11 +179,8 @@ const Userlist = () => {
                               key={index}
                             >
                               <img
-                                src={
-                                  `${process.env.REACT_APP_PROFILEPIC}` +
-                                  list?.profile_picture
-                                }
-                                alt={"Couldn't find profile!"}
+                                src={list?.profile_picture}
+                                alt={"Profile!"}
                                 style={{
                                   height: "40px",
                                   width: "40px",
@@ -189,7 +196,7 @@ const Userlist = () => {
 
                               <img
                                 src="/chat/assets/img/comment_2.svg"
-                                alt={"Couldn't find profile!"}
+                                alt={"Profile!"}
                                 style={{
                                   height: "35px",
                                   width: "35px",

@@ -207,7 +207,7 @@ const RoomChat = () => {
                               data-target="#openImage"
                               className="rounded mx-auto d-block"
                               src={
-                                `${process.env.REACT_APP_PROFILEPIC}` +
+                                // `${process.env.REACT_APP_PROFILEPIC}` +
                                 items?.filename
                               }
                               alt={"Images!"}
@@ -246,7 +246,7 @@ const RoomChat = () => {
                               data-target="#openImage"
                               className="rounded mx-auto d-block"
                               src={
-                                `${process.env.REACT_APP_PROFILEPIC}` +
+                                // `${process.env.REACT_APP_PROFILEPIC}` +
                                 items?.filename
                               }
                               alt={"Images!"}
